@@ -145,7 +145,7 @@ def main(ref_key="K8_lam1"):
     cv = Jbc @ ref.cov @ Jbc.T * 1e6
     def err_diff(a, b):
         return np.sqrt(max(cv[idx[a], idx[a]] + cv[idx[b], idx[b]] - 2 * cv[idx[a], idx[b]], 0))
-    md.append(f"\nΔ_1S = {d1:.1f} ± {err_diff('13S1','11S0'):.1f} MeV (ATLAS 64.5 ± 1.7);  Δ_2S = {d2:.1f} ± {err_diff('23S1','21S0'):.1f} (35.4 ± 2.4);  "
+    md.append(f"\nΔ_1S = {d1:.1f} ± {err_diff('13S1','11S0'):.1f} MeV (ATLAS 64.5 ± 1.8);  Δ_2S = {d2:.1f} ± {err_diff('23S1','21S0'):.1f} (35.4 ± 2.5);  "
               f"Δ_1S−Δ_2S = {d1-d2:.1f} (CMS 29.1 ± 1.7)\n")
 
     # ---- 5. spread of B_c predictions across all spline variants (λ, K, data, κ, floor)

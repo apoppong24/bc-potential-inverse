@@ -1,0 +1,21 @@
+K=6 lam=1__kappa0.2: chi2_data=12.0 chi2_prior=0.4 dof=4 (151s)
+   s(0.15)    =  -2.1626 ± 0.6228
+   s(0.33)    =  -1.5142 ± 0.1156
+   s(1.63)    =  -0.6990 ± 0.0412
+   s(3.61)    =  -0.1941 ± 0.0304
+   s(8.00)    =   0.4240 ± 0.0901
+   kappa      =   0.2000 ± 0.0000
+   m_c        =   1.8040 ± 0.0183
+   m_b        =   5.1791 ± 0.0174
+   Lambda     =   0.4000 ± 0.0000
+   cc 1S: exp 3068.7 model 3086.3 pull +1.76
+   cc 1P: exp 3525.4 model 3522.4 pull -0.29
+   cc 2S: exp 3674.0 model 3679.4 pull +0.54
+   cc 1D: exp 3822.5 model 3801.5 pull -2.06
+   bb 1S: exp 9445.0 model 9435.3 pull -0.96
+   bb 1P: exp 9899.9 model 9891.8 pull -0.80
+   bb 2S: exp 10017.3 model 10023.3 pull +0.58
+   bb 1D: exp 10163.7 model 10157.5 pull -0.59
+   bb 2P: exp 10260.2 model 10261.0 pull +0.08
+   bb 3S: exp 10342.1 model 10357.1 pull +1.34
+   bb 3P: exp 10517.2 model 10522.9 pull +0.53

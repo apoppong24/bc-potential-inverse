@@ -25,8 +25,8 @@ RES = Path("results"); FIG = Path("paper/figures"); FIG.mkdir(parents=True, exis
 BC_LAB = ["1S", "2S", "1P", "1D", "3S"]
 # measured B_c centroids: 1S from B_c(6274.5±0.3) and B_c*(ATLAS 6339.0±1.7);
 # 2S from B_c(2S)(6871.2±1.0) + (3/4)·Δ_hyp(2S) (ATLAS+CMS 35.4±2.4)
-BC_EXP = {"1S": ((6274.5 + 3 * 6339.0) / 4, np.sqrt(0.3**2 + (3 * 1.7)**2) / 4),
-          "2S": (6871.2 + 0.75 * 35.4, np.hypot(1.0, 0.75 * 2.4))}
+BC_EXP = {"1S": ((6274.5 + 3 * 6339.0) / 4, np.sqrt(0.3**2 + (3 * 1.8)**2) / 4),      # ATLAS 64.5 ± 1.4 +1.0/−1.4 symmetrised
+          "2S": (6871.2 + 0.75 * 35.4, np.hypot(1.0, 0.75 * 2.5))}
 
 
 def load_all():

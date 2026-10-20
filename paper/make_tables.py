@@ -55,7 +55,7 @@ for k in sorted(A["stability"], key=key_order):
 LAB = {"11S0": r"$1\,^1S_0$", "13S1": r"$1\,^3S_1$", "21S0": r"$2\,^1S_0$", "23S1": r"$2\,^3S_1$",
        "13P0": r"$1\,^3P_0$", "1P1": r"$1^{+}$", "1P1'": r"$1^{+'}$", "13P2": r"$1\,^3P_2$",
        "13D1": r"$1\,^3D_1$", "13D3": r"$1\,^3D_3$", "33S1": r"$3\,^3S_1$"}
-EXP = {"11S0": (6274.5, 0.3), "13S1": (6339.0, 1.7), "21S0": (6871.2, 1.0)}
+EXP = {"11S0": (6274.5, 0.3), "13S1": (6339.0, 1.8), "21S0": (6871.2, 1.0)}
 core = {k: v for k, v in A["bc_variants"].items() if "lam100" not in k}
 
 
@@ -70,8 +70,8 @@ for l, (m, e) in A["bc"].items():
     rows.append(f"{LAB[l]} & ${m:.0f}\\pm{SCALE*e:.0f}\\pm{half(lambda v: v[l]):.0f}$ & "
                 + (f"${ex[0]:.1f}\\pm{ex[1]}$" if ex else "--") + r" \\")
 h = A["hyp"]
-rows.append(f"$\\Delta_{{1S}}$ & ${h['d1S'][0]:.1f}\\pm{SCALE*h['d1S'][1]:.1f}\\pm{half(lambda v: v['13S1']-v['11S0']):.1f}$ & $64.5\\pm1.7$ \\\\")
-rows.append(f"$\\Delta_{{2S}}$ & ${h['d2S'][0]:.1f}\\pm{SCALE*h['d2S'][1]:.1f}\\pm{half(lambda v: v['23S1']-v['21S0']):.1f}$ & $35.4\\pm2.4$ \\\\")
+rows.append(f"$\\Delta_{{1S}}$ & ${h['d1S'][0]:.1f}\\pm{SCALE*h['d1S'][1]:.1f}\\pm{half(lambda v: v['13S1']-v['11S0']):.1f}$ & $64.5\\pm1.8$ \\\\")
+rows.append(f"$\\Delta_{{2S}}$ & ${h['d2S'][0]:.1f}\\pm{SCALE*h['d2S'][1]:.1f}\\pm{half(lambda v: v['23S1']-v['21S0']):.1f}$ & $35.4\\pm2.5$ \\\\")
 rows.append(f"$M(2\\,^1S_0)-M(1\\,^1S_0)$ & ${h['s21'][0]:.0f}\\pm{SCALE*h['s21'][1]:.0f}\\pm{half(lambda v: v['21S0']-v['11S0']):.0f}$ & $596.7\\pm1.0$ \\\\")
 (OUT / "bc.tex").write_text("\n".join(rows) + "\n\\bottomrule\n")
 print("wrote", [p.name for p in OUT.glob("*.tex")])
