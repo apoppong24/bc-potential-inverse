@@ -210,3 +210,116 @@ def fit_spline(K: int = 8, lam: float = 1.0, sigma_th: float = 10.0, h: float = 
         pred = predict(P, pair, [q[0] for q in rows], h=h)
         rows_out += [(pair, lab, m, pred[lab], (pred[lab] - m) / s) for lab, m, s in rows]
     return SplineFit(K, lam, knots, names, r.x, cov, chi2_data, chi2_prior, nd - len(r.x), rows_out, secs)
+
+
+# ---------------------------------------------------------------------------
+# Spin-averaged (centroid) fit: V(r) from the spin-independent spectrum only,
+# so that the extraction does not depend on the perturbative spin-dependent
+# treatment at all.
+# ---------------------------------------------------------------------------
+# Centroids M̄ = Σ(2J+1)M_J / Σ(2J+1) over the triplet (S states: (M_PS + 3 M_V)/4).
+# Where a multiplet is incomplete the missing member is estimated from the
+# pattern of the lower multiplets and an error assigned (noted per entry).
+CENTROIDS = {
+    "cc": {
+        "1S": (3068.70, 0.3),      # η_c, J/ψ
+        "1P": (3525.37, 0.3),      # χ_c0,1,2  (h_c at 3525.37: identical to 0.01 MeV)
+        "2S": (3674.02, 0.5),      # η_c(2S), ψ(2S)
+        "1D": (3822.51, 2.0),      # ψ(3770), ψ2(3823), ψ3(3842); ψ(3770) sits at DD̄ threshold
+    },
+    "bb": {
+        "1S": (9444.97, 1.5),      # η_b, Υ(1S)
+        "1P": (9899.87, 0.4),      # χ_b0,1,2(1P)
+        "2S": (10017.3, 2.6),      # η_b(2S), Υ(2S)
+        "1D": (10163.7, 3.0),      # Υ2(1D) only; |centroid − J=2| ≲ 2 MeV in any potential model
+        "2P": (10260.24, 0.5),     # χ_b0,1,2(2P)
+        "3S": (10342.1, 5.0),      # Υ(3S) − (3/4)Δ_hyp(3S), Δ_hyp(3S) = 17 ± 6 from the 1S/2S pattern
+        "3P": (10517.2, 4.0),      # χ_b1,2(3P); χ_b0(3P) ≈ χ_b1 − 18 ± 8 from the 1P/2P pattern
+    },
+}
+
+
+def centroid_dataset(sigma_th=10.0, exclude=()):
+    rows = []
+    for pair, table in CENTROIDS.items():
+        for lab, (m, s) in table.items():
+            if any(x in lab for x in exclude):
+                continue
+            rows.append((pair, lab, m / 1000.0, np.hypot(s, sigma_th) / 1000.0))
+    return rows
+
+
+def predict_centroids(P: Potential, pair: str, labels, h=2e-3):
+    """Spin-averaged masses m1 + m2 + E_nl (GeV) for labels like '2P'."""
+    from .fit import R_MAX
+    from .solver import solve
+    q = {"cc": ("c", "c"), "bb": ("b", "b"), "cb": ("c", "b")}[pair]
+    m1, m2 = P.mass(q[0]), P.mass(q[1])
+    out = {}
+    for lab in labels:
+        n, L = int(lab[0]), "SPDF".index(lab[1])
+        st = solve(P, m1, m2, n, L, r_max=R_MAX[L][n], h=h)
+        out[lab] = m1 + m2 + st.E
+    return out
+
+
+def fit_spline_centroid(K: int = 6, lam: float = 1.0, sigma_th: float = 10.0, kappa: float = 0.0,
+                        h: float = 2e-3, verbose: bool = True, exclude=()) -> SplineFit:
+    """Fit the spline potential to the spin-averaged centroids only.
+    The parameter vector keeps the layout [s_free, kappa, m_c, m_b, Lambda] of
+    fit_spline so that SplineFit.potential()/band() work unchanged; kappa and
+    Lambda are held fixed (kappa: the centroid spectrum is blind to r < 0.2 GeV⁻¹;
+    Lambda: no spin-dependent term enters)."""
+    knots = knot_grid(K)
+    x_knots = np.log(knots)
+    k1 = int(np.argmin(np.abs(x_knots)))
+    data = centroid_dataset(sigma_th, exclude)
+    by_pair = {}
+    for pair, lab, m, s in data:
+        by_pair.setdefault(pair, []).append((lab, m, s))
+
+    from .potentials import MARTIN
+    s0_full = MARTIN(knots) + kappa / knots
+    s0_full += (V0 + kappa) - s0_full[k1]
+    LAM = 0.40                                   # dummy; no spin-dependent term enters
+    x0 = np.concatenate([np.delete(s0_full, k1), [1.75, 5.15]])      # free: s_free, m_c, m_b
+    lo = np.concatenate([np.full(K - 1, -8.0), [1.0, 4.0]])
+    hi = np.concatenate([np.full(K - 1, 8.0), [2.5, 6.0]])
+    names = [f"s({r:.2f})" for i, r in enumerate(knots) if i != k1] + ["kappa", "m_c", "m_b", "Lambda"]
+
+    D2 = np.zeros((K - 2, K))
+    for i in range(K - 2):
+        D2[i, i:i + 3] = [1.0, -2.0, 1.0]
+    D2 /= (x_knots[1] - x_knots[0]) ** 2
+
+    def residuals(x):
+        s_free, m_c, m_b = x[:K - 1], x[K - 1], x[K]
+        P = make_spline_potential(knots, s_free, kappa, m_c, m_b, LAM)
+        res = []
+        for pair, rows in by_pair.items():
+            try:
+                pred = predict_centroids(P, pair, [r[0] for r in rows], h=h)
+            except ValueError:
+                return np.full(len(data) + K - 2, 1e3)
+            res += [(pred[lab] - m) / s for lab, m, s in rows]
+        prior = np.sqrt(lam) * (D2 @ np.insert(s_free, k1, V0 + kappa))
+        return np.concatenate([res, prior])
+
+    t0 = time.time()
+    r = least_squares(residuals, x0, bounds=(lo, hi), x_scale="jac", diff_step=1e-3,
+                      verbose=2 if verbose else 0, max_nfev=400)
+    secs = time.time() - t0
+    cov_free = np.linalg.pinv(r.jac.T @ r.jac)
+    nd = len(data)
+    chi2_data = float(np.sum(r.fun[:nd] ** 2)); chi2_prior = float(np.sum(r.fun[nd:] ** 2))
+    # embed in the standard layout [s_free, kappa, m_c, m_b, Lambda] with zero rows for the fixed parameters
+    x_full = np.concatenate([r.x[:K - 1], [kappa], r.x[K - 1:], [LAM]])
+    free_idx = list(range(K - 1)) + [K, K + 1]
+    cov = np.zeros((K + 3, K + 3))
+    cov[np.ix_(free_idx, free_idx)] = cov_free
+    P = make_spline_potential(knots, r.x[:K - 1], kappa, r.x[K - 1], r.x[K], LAM)
+    rows_out = []
+    for pair, rows in by_pair.items():
+        pred = predict_centroids(P, pair, [q[0] for q in rows], h=h)
+        rows_out += [(pair, lab, m, pred[lab], (pred[lab] - m) / s) for lab, m, s in rows]
+    return SplineFit(K, lam, knots, names, x_full, cov, chi2_data, chi2_prior, nd - (K + 1), rows_out, secs)

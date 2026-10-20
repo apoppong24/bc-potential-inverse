@@ -194,12 +194,15 @@ def main(ref_key="K8_lam1"):
     ax.set_xlabel(r"$r$ [GeV$^{-1}$]"); ax.set_ylabel(r"$V(r)$ [GeV]"); ax.legend(loc="lower right")
     fig.tight_layout(); fig.savefig(FIG / "figA1_potential_band.pdf"); plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(3.5, 2.6))
-    for k, f in sorted(fits.items(), key=lambda kv: (kv[1].K, kv[1].lam)):
+    fig, ax = plt.subplots(figsize=(3.5, 3.4))
+    for k, f in sorted(fits.items(), key=lambda kv: (kv[1].K, kv[1].lam, kv[0])):
+        if "__" in k and not k.endswith("noD"):
+            continue                                        # floor / kappa / no3P variants: in the table only
         Vk, sk = f.band(r)
         ax.plot(r, 1000 * sk, lw=1, label=f"K={f.K}, λ={f.lam:g}" + (" (no D)" if "noD" in k else ""))
     ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlim(0.1, 12); ax.set_ylim(2, 2000)
-    ax.set_xlabel(r"$r$ [GeV$^{-1}$]"); ax.set_ylabel(r"$\sigma_V$ [MeV]"); ax.legend(ncol=2)
+    ax.set_xlabel(r"$r$ [GeV$^{-1}$]"); ax.set_ylabel(r"$\sigma_V$ [MeV]")
+    ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.22), frameon=False, columnspacing=0.8)
     fig.tight_layout(); fig.savefig(FIG / "figA2_band_width.pdf"); plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7.0, 3.2))
