@@ -1,5 +1,7 @@
 # bc-potential-inverse — what does the quarkonium spectrum know about V(r)?
 
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0009--4678--0034-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0009-4678-0034)
+
 Code, fits and manuscript for
 
 > P. A. Oppong, *What does the quarkonium spectrum know about the heavy-quark
